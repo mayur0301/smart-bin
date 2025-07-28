@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Waste Bin Dashboard 🗑️</title>
+
+    <!-- Include jQuery and Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
+
+    <style>
+        body {
+            /* background: linear-gradient(to right, #0f2027, #203a43, #2c5364); */
+            background: #168aad;
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .navbar {
+            background: #184e77;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .bar-container {
+            width: 80%;
+            height: 25px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: auto;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(to right, green, red);
+            transition: width 0.5s ease-in-out;
+        }
+
+        .status {
+            font-size: 20px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .about-section {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease-in-out;
+        }
+
+        .about-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .navbar-brand {
+            font-size: 30px;
+            color: #d9ed92;
+        }
+
+        .nav-item {
+            font-size: 20px;
+        }
+
+        #system-status {
+            position: absolute;
+            top: 80px;
+            /* adjust depending on your navbar height */
+            left: 6px;
+            /* padding: 6px 14px; */
+            border-radius: 15px;
+            font-weight: bold;
+            background-color: #34a0a4;
+            z-index: 999;
+            height: 33px;
+            width: 175px;
+            font-size: 20px;
+        }
+
+        .status-online {
+            background-color: green;
+            color: white;
+        }
+
+        .status-offline {
+            background-color: red;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Smart Waste Bin</a>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#alerts">Alerts</a></li>
+                <li class="nav-item"><a class="nav-link" href="#about">About Us</a></li>
+            </ul>
+
+            <!-- <input  class="form-control ms-3" type="search"  placeholder="Enter Dustbin ID" disabled> -->
+            <div class="input-group ms-3" style="width: 375px;">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input class="form-control" type="search" placeholder="Enter Dustbin ID" disabled>
+            </div>
+
+
+        </div>
+    </nav>
+
+    <div id="system-status" class="ms-3 mt-2">
+        <span class="badge ">🔄 Checking status...</span>
+    </div>
+
+    <div class="container mt-4" id="dashboard">
+        <h3>Dustbin ID: <span id="bin-id">#DB102</span></h3>
+        <div class="bar-container mt-4">
+            <div id="bar-fill" class="bar-fill"></div>
+        </div>
+        <div id="status-alert" class="status mt-4">⌛ Waiting for data...</div>
+    </div>
+
+    <div class="toast-container">
+        <div id="alert-toast" class="toast bg-danger text-white" data-bs-delay="3000">
+            <div class="toast-body">🚨 Dustbin is Full!</div>
+        </div>
+    </div>
+
+    <div class="container mt-5 about-section" id="about">
+        <h2>About Our Project</h2>
+        <p>This smart waste management system monitors garbage levels and provides real-time alerts...</p>
+    </div>
+
+    <script>
+        function updateData() {
+            $.getJSON('/get_data', function (data) {
+                let distance = data.distance;
+                let level = Math.max(0, Math.min(100, (30 - distance) * 100 / 30));
+                $("#bar-fill").css("width", level + "%");
+
+                if (level < 40) {
+                    $("#status-alert").css("color", "lightgreen").text("✅ Bin is Empty");
+                } else if (level < 75) {
+                    $("#status-alert").css("color", "yellow").text("⚠️ Bin is Half-Full");
+                } else {
+                    $("#status-alert").css("color", "red").text("🚨 Bin is Full!");
+                    let toast = new bootstrap.Toast(document.getElementById('alert-toast'));
+                    toast.show();
+                }
+            });
+        }
+        setInterval(updateData, 2000);
+
+        document.addEventListener("scroll", function () {
+            let aboutSection = document.getElementById("about");
+            let position = aboutSection.getBoundingClientRect().top;
+            if (position < window.innerHeight - 50) {
+                aboutSection.classList.add("visible");
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+</body>
+
+</html>
